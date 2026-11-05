@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Отчёт</title>
+<style>
+:root{
+  --pu-900:#2e1065; --pu-800:#3b0f7a; --pu-700:#5b21b6; --pu-600:#7c3aed; --pu-400:#a78bfa;
+  --pu-200:#ddd6fe; --pu-100:#ede9fe; --pu-50:#f5f3ff;
+  --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#f8fafc; --card:#fff;
+  --g-bg:#dcfce7; --g-fg:#166534; --g-bd:#86efac;
+  --y-bg:#fef9c3; --y-fg:#854d0e; --y-bd:#fde047;
+  --o-bg:#ffedd5; --o-fg:#9a3412; --o-bd:#fdba74;
+  --b-bg:#dbeafe; --b-fg:#1e40af; --b-bd:#93c5fd;
+  --x-bg:#e5e7eb; --x-fg:#374151; --x-bd:#9ca3af;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;font-size:16px}
+
+/* top bar + hamburger */
+.topbar{position:fixed;top:0;left:0;right:0;height:56px;background:var(--pu-900);color:#fff;display:flex;align-items:center;gap:12px;padding:0 14px;z-index:60;box-shadow:0 2px 8px rgba(46,16,101,.3)}
+.burger{width:42px;height:42px;border:0;border-radius:10px;background:var(--pu-700);cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;flex-shrink:0}
+.burger:hover{background:var(--pu-600)}
+.burger span{display:block;width:20px;height:2px;background:#fff;border-radius:2px;transition:.25s}
+.burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.burger.open span:nth-child(2){opacity:0}
+.burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.topbar .ttl{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* sidebar */
+.sidebar{position:fixed;top:56px;left:0;bottom:0;width:310px;max-width:88vw;background:linear-gradient(180deg,var(--pu-800),var(--pu-900));color:var(--pu-100);overflow-y:auto;transform:translateX(-100%);transition:transform .3s ease;z-index:55;padding:16px 10px 40px;box-shadow:4px 0 20px rgba(46,16,101,.35)}
+.sidebar.open{transform:translateX(0)}
+.sidebar h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--pu-400);margin:6px 12px 10px}
+.sidebar a{display:block;color:var(--pu-100);text-decoration:none;padding:7px 12px;border-radius:8px;font-size:14px;line-height:1.35;border-left:3px solid transparent}
+.sidebar a:hover{background:rgba(167,139,250,.22);color:#fff}
+.sidebar a.part{font-weight:700;color:#fff;margin-top:12px;background:rgba(124,58,237,.35);text-transform:uppercase;font-size:13px;letter-spacing:.03em}
+.sidebar a.sub{padding-left:24px}
+.sidebar a.active{background:var(--pu-600);color:#fff;border-left-color:var(--pu-200)}
+.overlay{position:fixed;inset:56px 0 0 0;background:rgba(15,5,40,.45);opacity:0;pointer-events:none;transition:opacity .3s;z-index:50}
+.overlay.show{opacity:1;pointer-events:auto}
+@media(min-width:1100px){
+  .overlay{display:none}
+  body.toc-open main{margin-left:310px}
+}
+main{max-width:1100px;margin:0 auto;padding:76px 16px 60px;transition:margin .3s}
+
+/* header */
+.hero{background:linear-gradient(135deg,var(--pu-900),var(--pu-700));color:#fff;border-radius:18px;padding:34px 28px;box-shadow:0 8px 28px rgba(91,33,182,.25)}
+.hero h1{margin:0 0 10px;font-size:clamp(22px,4.2vw,36px);line-height:1.2;letter-spacing:.01em}
+.hero .sub{margin:0;font-size:clamp(15px,2.3vw,19px);color:var(--pu-200)}
+.postulate{margin:22px 0 0;background:rgba(255,255,255,.12);border:2px solid var(--pu-400);border-radius:14px;padding:18px 20px;font-size:clamp(15px,2vw,17px);line-height:1.65;color:#fff}
+.postulate p{margin:0 0 10px}
+.postulate p:last-child{margin-bottom:0}
+.postulate strong{color:#fff;border-bottom:2px solid var(--pu-400)}
+
+/* legend */
+.legend{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin:24px 0}
+.legend h2{margin:0 0 4px;font-size:20px;color:var(--pu-800)}
+.legend p.note{margin:0 0 14px;color:var(--muted);font-size:14px}
+.legend-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.legend-item{border-radius:12px;padding:12px 14px;border:1px solid}
+.legend-item p{margin:6px 0 0;font-size:14px}
+.legend-item.g{background:var(--g-bg);border-color:var(--g-bd);color:var(--g-fg)}
+.legend-item.y{background:var(--y-bg);border-color:var(--y-bd);color:var(--y-fg)}
+.legend-item.o{background:var(--o-bg);border-color:var(--o-bd);color:var(--o-fg)}
+.legend-item.b{background:var(--b-bg);border-color:var(--b-bd);color:var(--b-fg)}
+.legend-item.x{background:var(--x-bg);border-color:var(--x-bd);color:var(--x-fg)}
+
+/* tags */
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid;white-space:nowrap;line-height:1.5;vertical-align:middle;margin:2px 4px 2px 0}
+.tag.g{background:var(--g-bg);color:var(--g-fg);border-color:var(--g-bd)}
+.tag.g::after{content:"Клинически применимо"}
+.tag.y{background:var(--y-bg);color:var(--y-fg);border-color:var(--y-bd)}
+.tag.y::after{content:"Вспомогательный"}
+.tag.o{background:var(--o-bg);color:var(--o-fg);border-color:var(--o-bd)}
+.tag.o::after{content:"Потребительский"}
+.tag.b{background:var(--b-bg);color:var(--b-fg);border-color:var(--b-bd)}
+.tag.b::after{content:"Исследовательский"}
+.tag.x{background:var(--x-bg);color:var(--x-fg);border-color:var(--x-bd)}
+.tag.x::after{content:"Недоступно в СНГ"}
+.legend .tag{font-size:13px}
+
+/* sections */
+.part-head{margin:44px 0 6px;padding:16px 20px;border-radius:14px;background:var(--pu-100);border-left:6px solid var(--pu-600);color:var(--pu-900);font-size:clamp(20px,3.3vw,28px);line-height:1.25}
+section.sec{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 22px 16px;margin:18px 0}
+section.sec h3{margin:0 0 14px;font-size:clamp(18px,2.6vw,23px);color:var(--pu-800);padding-bottom:8px;border-bottom:2px solid var(--pu-200)}
+section.sec h4{margin:20px 0 8px;font-size:17px;color:var(--pu-700)}
+section.sec h5{margin:16px 0 6px;font-size:15px;color:var(--pu-700)}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:22px}
+li{margin-bottom:6px}
+
+/* callouts */
+.callout{border-radius:12px;padding:12px 16px;margin:14px 0;border-left:5px solid;font-size:15px}
+.callout strong.lbl{display:block;margin-bottom:2px}
+.callout.key{background:var(--pu-50);border-color:var(--pu-600);color:var(--pu-900)}
+.callout.warn{background:#fef2f2;border-color:#dc2626;color:#7f1d1d}
+.callout.rule{background:#fffbeb;border-color:#f59e0b;color:#78350f}
+.callout.doc{background:#eff6ff;border-color:#3b82f6;color:#1e3a8a}
+.callout.ok{background:#f0fdf4;border-color:#22c55e;color:#14532d}
+
+/* tables */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:12px 0 18px;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px;background:#fff}
+th{background:var(--pu-700);color:#fff;text-align:left;padding:10px 12px;font-weight:600;position:sticky;top:0;white-space:normal}
+td{padding:9px 12px;border-top:1px solid var(--line);vertical-align:top}
+tr:nth-child(even) td{background:#faf9ff}
+td:first-child{font-weight:600}
+table.wide{min-width:900px}
+table.xwide{min-width:1000px}
+.tcap{font-weight:700;color:var(--pu-800);margin:18px 0 4px;font-size:16px}
+
+/* steps */
+.steps{counter-reset:s;list-style:none;padding:0}
+.steps>li{counter-increment:s;position:relative;padding:10px 12px 10px 52px;margin-bottom:10px;background:var(--pu-50);border:1px solid var(--pu-200);border-radius:12px}
+.steps>li::before{content:counter(s);position:absolute;left:12px;top:10px;width:28px;height:28px;border-radius:50%;background:var(--pu-600);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+.steps ul{margin:6px 0 0}
+.scen{border:2px solid var(--pu-200);border-radius:14px;padding:6px 16px 6px;margin:16px 0}
+.scen>h4{margin-top:10px}
+.facts li::marker{color:var(--pu-600)}
+footer{text-align:center;color:var(--muted);font-size:13px;margin-top:40px}
+
+@media(max-width:640px){
+  main{padding:72px 10px 40px}
+  .hero{padding:22px 16px}
+  section.sec{padding:16px 14px 10px}
+  .part-head{padding:12px 14px}
+  .steps>li{padding-left:48px}
+}
+@media print{.topbar,.sidebar,.overlay{display:none}main{margin:0!important;padding-top:0}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <button class="burger" id="burger" aria-label="Открыть или закрыть оглавление" aria-expanded="false"><span></span><span></span><span></span></button>
+  <div class="ttl">Отчёт</div>
+</header>
+<div class="overlay" id="overlay"></div>
+
+<nav class="sidebar" id="sidebar" aria-label="Оглавление">
+  <h2>Оглавление</h2>
+  <a href="#top">Начало · Легенда</a>
+  <a class="part" href="#part1">Часть 1. Митохондриальное здоровье</a>
+  <a class="sub" href="#s1-1">1.1. Что такое митохондриальное здоровье</a>
+  <a class="sub" href="#s1-2">1.2. На что влияет митохондриальная функция</a>
+  <a class="sub" href="#s1-3">1.3. Что входит в исследование митохондриального здоровья</a>
+  <a class="sub" href="#s1-4">1.4. Методы исследования: плюсы, минусы, практическая ценность</a>
+  <a class="sub" href="#s1-5">1.5. Митохондриальное секвенирование</a>
+  <a class="sub" href="#s1-6">1.6. Алгоритм врача при запросе «проверить митохондриальное здоровье»</a>
+  <a class="sub" href="#s1-7">1.7. Подходы к коррекции</a>
+  <a class="sub" href="#s1-8">1.8. Коммерческое сравнение: митохондриальная генетика</a>
+  <a class="sub" href="#s1-9">1.9. Интересные факты и исследования</a>
+  <a class="part" href="#part2">Часть 2. Микробиом</a>
+  <a class="sub" href="#s2-1">2.1. Термины</a>
+  <a class="sub" href="#s2-2">2.2. На что влияет микробиота</a>
+  <a class="sub" href="#s2-3">2.3. Когда нужна диагностика</a>
+  <a class="sub" href="#s2-4">2.4. Методы исследования микробиома</a>
+  <a class="sub" href="#s2-5">2.5. Коммерческое сравнение: микробиом</a>
+  <a class="sub" href="#s2-6">2.6. Алгоритм врача при запросе «проверить микробиом»</a>
+  <a class="sub" href="#s2-7">2.7. Интересные факты</a>
+  <a class="part" href="#part3">Часть 3. Итоговые практические выводы</a>
+  <a class="sub" href="#s3-1">3.1. Общие принципы</a>
+  <a class="sub" href="#s3-2">3.2. Что реально доступно в России</a>
+  <a class="sub" href="#s3-3">3.3. Чего избегать</a>
+  <a class="sub" href="#s3-4">3.4. Чек-лист перед направлением пациента</a>
+</nav>
+
+<main id="top">
+
+<div class="hero">
+  <h1>ОТЧЁТ</h1>
+  <p class="sub">Митохондриальное здоровье и микробиом: диагностика, лабораторные методы, генетическое тестирование и коммерческие решения</p>
+  <div class="postulate">
+  <p><strong>Митохондриальная генетика</strong> отвечает на вопрос: есть ли наследственные варианты в митохондриальной и ядерной ДНК?</p>
+  <p><strong>Митохондриальное здоровье</strong> отвечает на вопрос: как митохондрии работают в данный момент?</p>
+  <p>Отрицательный генетический тест не исключает вторичную митохондриальную дисфункцию, а обнаруженный вариант не означает автоматически наличие клинически выраженной болезни.</p>
+</div>
+</div>
+
+<div class="legend" id="legend">
+  <h2>Легенда цветовых обозначений</h2>
+  <p class="note">Цветные теги отмечают тесты и методы в таблицах и тексте. У одного метода может быть несколько тегов.</p>
+  <div class="legend-grid">
+    <div class="legend-item g"><span class="tag g"></span><p>Меняет тактику или входит в обычную диагностику.</p></div>
+    <div class="legend-item y"><span class="tag y"></span><p>Полезен в контексте, сам по себе диагноз не ставит.</p></div>
+    <div class="legend-item o"><span class="tag o"></span><p>Коммерческий формат без клинической валидации.</p></div>
+    <div class="legend-item b"><span class="tag b"></span><p>Наука или узкий специализированный центр.</p></div>
+    <div class="legend-item x"><span class="tag x"></span><p>Практически недоступно в РФ/СНГ; статус нужно проверять для конкретного теста и страны.</p></div>
+  </div>
+</div>
+
+<!-- ===================== ЧАСТЬ 1 ===================== -->
+<h2 class="part-head" id="part1">ЧАСТЬ 1. МИТОХОНДРИАЛЬНОЕ ЗДОРОВЬЕ</h2>
+
+<section class="sec" id="s1-1">
+  <h3>1.1. Что такое митохондриальное здоровье</h3>
+  <p>Митохондрии давно перестали считать просто «энергетическими станциями». Помимо синтеза АТФ путём окислительного фосфорилирования, они участвуют в цикле Кребса и β-окислении жирных кислот, регулируют редокс-баланс, апоптоз и кальциевый гомеостаз, запускают воспалительную сигнализацию и обеспечивают термогенез.</p>
+  <p>Дыхательная цепь состоит из пяти комплексов: I (NADH-дегидрогеназа), II (сукцинатдегидрогеназа), III (цитохром bc1), IV (цитохром-c-оксидаза) и V (АТФ-синтаза). Сбой на любом из этих звеньев снижает энергетическую эффективность клетки.</p>
+  <div class="callout key"><strong class="lbl">Практический вывод</strong>Оценку митохондриального здоровья нельзя сводить к одному генетическому тесту или изолированному биомаркеру. Клиническую картину, функцию, структуру и метаболизм важно рассматривать в совокупности.</div>
+</section>
+
+<section class="sec" id="s1-2">
+  <h3>1.2. На что влияет митохондриальная функция</h3>
+  <p>Сильнее всего страдают ткани с наивысшей энергетической потребностью. В практике важно четко разделять два уровня доказательности.</p>
+  <h4>1. Проявления первичных митохондриальных заболеваний</h4>
+  <p>При генетически подтверждённых дефектах митохондриальной или ядерной ДНК типичны системные поражения:</p>
+  <ul>
+    <li><strong>Нервная система:</strong> судороги, инсультоподобные эпизоды, мигрени, когнитивные нарушения, нейродегенерация.</li>
+    <li><strong>Мышечная система:</strong> слабость, непереносимость нагрузки, наружная офтальмоплегия, птоз.</li>
+    <li><strong>Сердечно-сосудистая система:</strong> кардиомиопатия, нарушения проводимости.</li>
+    <li><strong>Органы чувств:</strong> нейросенсорная тугоухость, атрофия зрительного нерва.</li>
+    <li><strong>Эндокринная система:</strong> сахарный диабет и другие эндокринопатии.</li>
+    <li><strong>Желудочно-кишечный тракт:</strong> нарушения моторики, дисфагия, запоры.</li>
+  </ul>
+  <p>Эти проявления возникают в сочетании и носят системный характер.</p>
+  <h4>2. Ассоциации при распространённых состояниях (вторичная дисфункция)</h4>
+  <p>При ожирении, инсулинорезистентности, диабете 2 типа, стеатозе печени, сердечно-сосудистых заболеваниях и старении описаны изменения митохондриальной функции: окислительный стресс, нарушения окислительного фосфорилирования, биогенеза и митофагии. Эти изменения чаще служат следствием метаболических нарушений или фактором их прогрессирования; причинно-следственная связь продолжает изучаться. Их наличие само по себе не свидетельствует о наследственном митохондриальном заболевании.</p>
+  <p>Вторичную митохондриальную дисфункцию могут провоцировать внешние и метаболические факторы: лекарственная токсичность (особенно при применении вальпроевой кислоты; влияние статинов остаётся неоднозначным), хроническая тканевая гипоксия, а также дефициты микронутриентов, участвующих в энергетическом обмене: CoQ10, витаминов B1, B2, B3 и L-карнитина.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Направление</th><th>Что имеется в виду</th><th>Уровень связи с митохондриями</th></tr></thead>
+    <tbody>
+      <tr><td>Метаболическое здоровье</td><td>Инсулинорезистентность, ожирение, дислипидемия, стеатоз печени</td><td>Ассоциация, чаще вторичная дисфункция</td></tr>
+      <tr><td>Старение</td><td>Окислительный стресс, нарушение митофагии, хроническое воспаление низкой интенсивности</td><td>Ассоциация, причинность не доказана</td></tr>
+      <tr><td>Физическая работоспособность</td><td>VO₂max, переносимость нагрузки, восстановление</td><td>Многофакторный показатель; при первичных заболеваниях снижен закономерно</td></tr>
+      <tr><td>Сердечно-сосудистый риск</td><td>Энергетическое обеспечение миокарда</td><td>Ассоциация; кардиомиопатия типична для первичных заболеваний</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout warn"><strong class="lbl">Важно</strong>Все перечисленные состояния многофакторны. Митохондриальная дисфункция при них не служит специфическим признаком наследственной патологии.</div>
+</section>
+
+<section class="sec" id="s1-3">
+  <h3>1.3. Что входит в исследование митохондриального здоровья</h3>
+  <p>Диагностика складывается из пяти направлений: клинической оценки, биохимических маркеров, функциональных тестов, генетических исследований и морфологических или инструментальных методов. Каждому пациенту весь спектр исследований не требуется.</p>
+  <h4>Биомаркеры: что доступно и что они означают</h4>
+  <div class="tw"><table class="wide">
+    <thead><tr><th>Маркер</th><th>Что отражает</th><th>Когда назначать</th><th>Ограничения и преаналитика</th></tr></thead>
+    <tbody>
+      <tr><td>Лактат, пируват<br><span class="tag g"></span></td><td>Энергетический обмен, анаэробный гликолиз</td><td>Подозрение на первичное митохондриальное заболевание</td><td>Высокая чувствительность к преаналитике: забор без жгута (или его снятие перед взятием), немедленное охлаждение/депротеинизация. Ошибки забора ведут к ложноположительным результатам!</td></tr>
+      <tr><td>Соотношение лактат/пируват<br><span class="tag y"></span></td><td>Редокс-состояние</td><td>Только при повышенном лактате</td><td>Малоинформативно при нормальном лактате</td></tr>
+      <tr><td>Аминокислоты (аланин)<br><span class="tag y"></span></td><td>Метаболизм пирувата</td><td>Дополнение к лактату</td><td>Неспецифично</td></tr>
+      <tr><td>Ацилкарнитины<br><span class="tag g"></span></td><td>Окисление жирных кислот</td><td>Метаболический скрининг</td><td>Не прямой тест митохондриальной функции</td></tr>
+      <tr><td>GDF-15, FGF-21<br><span class="tag b"></span></td><td>Клеточный стресс</td><td>Конкретный клинический вопрос</td><td>Неспецифичны: повышаются при ожирении, диабете, ССЗ, ХСН</td></tr>
+      <tr><td>Органические кислоты мочи<br><span class="tag g"></span></td><td>Метаболические пути (сукцинат, фумарат, малат и др.)</td><td>Подозрение на наследственные метаболические дефекты</td><td>Нужна специализированная интерпретация</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout rule"><strong class="lbl">Правило</strong>GDF-15 и FGF-21 не являются скрининговыми тестами для здоровых людей. Их повышение не доказывает митохондриальное заболевание. Назначать их стоит только при конкретном клиническом вопросе, а не «на всякий случай».</div>
+</section>
+
+<section class="sec" id="s1-4">
+  <h3>1.4. Методы исследования: плюсы, минусы, практическая ценность</h3>
+  <div class="tw"><table class="wide">
+    <thead><tr><th>Метод</th><th>Что даёт</th><th>Когда оправдан</th><th>Ограничения</th></tr></thead>
+    <tbody>
+      <tr><td>Лактат/пируват<br><span class="tag g"></span></td><td>Базовая оценка энергетического обмена</td><td>Первый шаг при клиническом подозрении</td><td>Высокий риск преаналитических ошибок (требует строгого соблюдения протокола взятия)</td></tr>
+      <tr><td>GDF-15 / FGF-21<br><span class="tag b"></span></td><td>Маркеры клеточного стресса</td><td>Специализированная оценка</td><td>Неспецифичны, нет универсальных норм</td></tr>
+      <tr><td>VO₂max / CPET<br><span class="tag y"></span></td><td>Переносимость нагрузки, функциональный резерв</td><td>Оценка функционального резерва</td><td>Не указывает на конкретную молекулярную причину</td></tr>
+      <tr><td>Цитохимия ферментов (СДГ, ЦОХ)<br><span class="tag b"></span></td><td>Активность отдельных ферментов</td><td>Исследовательские протоколы</td><td>Зависимость от методики</td></tr>
+      <tr><td>Биопсия мышцы<br><span class="tag g"></span></td><td>Структура и функция митохондрий</td><td>При сохраняющемся высоком подозрении, если неинвазивные и молекулярные исследования не дали ответа; по решению профильного специалиста</td><td>Инвазивность; не является обязательным следующим шагом после любого отрицательного генетического теста</td></tr>
+      <tr><td>Секвенирование мтДНК<br><span class="tag g"></span></td><td>Генетические варианты</td><td>Подозрение на наследственное заболевание</td><td>Не показывает текущую функцию</td></tr>
+      <tr><td>Прямая респирометрия (Seahorse, Oroboros)<br><span class="tag b"></span><span class="tag x"></span></td><td>Детальная оценка дыхательной цепи (Скорость потребления кислорода, базальное и максимальное дыхание)</td><td>Специализированные и исследовательские центры</td><td>Практически недоступна в рутинной практике РФ</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout key"><strong class="lbl">Ключевое различие</strong>Функциональные тесты (Seahorse, Oroboros) показывают, как митохондрии работают сейчас, а секвенирование выявляет наследственную причину. Одно другое не заменяет.</div>
+</section>
+
+<section class="sec" id="s1-5">
+  <h3>1.5. Митохондриальное секвенирование</h3>
+  <h4>Два генома</h4>
+  <p>Митохондриальная ДНК представляет собой кольцевую молекулу из 37 генов: 13 кодируют белки дыхательной цепи, 22 тРНК и 2 рРНК. Она наследуется по материнской линии.</p>
+  <p>Большинство митохондриальных белков кодируется ядерными генами. Это компоненты дыхательной цепи, белки репликации и поддержания мтДНК (POLG, TWNK), динамики митохондрий (OPA1, MFN2) и митохондриальной трансляции (AARS2, EARS2).</p>
+  <h4>Гетероплазмия</h4>
+  <p>Гетероплазмия означает сосуществование нормальных и мутированных копий мтДНК в одной клетке или ткани. Её уровень различается между кровью, мочой и мышцами, поэтому отрицательный результат анализа крови не исключает патологию.</p>
+  <h4>Что должна указать лаборатория (Чек-лист из 10 вопросов)</h4>
+  <ol class="steps">
+    <li>Секвенируется ли мтДНК полностью?</li>
+    <li>Какова глубина покрытия мтДНК (отдельно от покрытия ядерного генома)?</li>
+    <li>Какой минимальный уровень гетероплазмии определяется?</li>
+    <li>Выявляются ли крупные делеции (с указанием метода: NGS/MLPA)?</li>
+    <li>Выявляются ли дупликации?</li>
+    <li>Определяется ли количество копий мтДНК (истощение) отдельно?</li>
+    <li>Какие ткани принимаются?</li>
+    <li>Подтверждаются ли клинически значимые варианты независимым методом?</li>
+    <li>Включены ли ядерные гены?</li>
+    <li>Возможен ли реанализ при появлении новых данных?</li>
+  </ol>
+  <p>Полный митохондриальный геном по данным NGS предпочтительнее анализа отдельных мутаций. При этом WES и WGS не всегда включают анализ мтДНК, и это нужно проверять отдельно. Метод MLPA применяется для оценки изменений числа копий и поиска крупных перестроек/делеций, но не подходит для детекции точечных нуклеотидных замен.</p>
+  <div class="callout ok"><strong class="lbl">Когда секвенирование оправдано</strong>При подозрении на MELAS, LHON или прогрессирующую наружную офтальмоплегию; при необъяснимой миопатии; при сочетании неврологических и метаболических нарушений; при отягощённом семейном анамнезе; при подозрении на синдромы делеций или истощения мтДНК.</div>
+  <div class="callout warn"><strong class="lbl">Когда не оправдано</strong>При изолированной усталости без других признаков, при «проверке митохондрий» у здорового человека и при скрининге без клинической гипотезы.</div>
+</section>
+
+<section class="sec" id="s1-6">
+  <h3>1.6. Алгоритм врача при запросе «проверить митохондриальное здоровье»</h3>
+  <p>Алгоритм разделяет два принципиально разных сценария: профилактический запрос (А) и клиническое подозрение на митохондриальное заболевание (Б). Смешивать их нельзя.</p>
+
+  <div class="scen">
+    <h4>Сценарий А. Профилактический запрос («хочу проверить митохондрии»)</h4>
+    <ol class="steps">
+      <li><strong>Выяснить цель запроса:</strong> Усталость, снижение выносливости, «туман в голове» или желание «оптимизировать здоровье».</li>
+      <li><strong>Исключить частые причины жалоб до назначения специальных тестов:</strong>
+        <ul>
+          <li>ОАК, ферритин (анемия, латентный дефицит железа). <span class="tag g"></span></li>
+          <li>ТТГ, св. Т4 (дисфункция щитовидной железы). <span class="tag g"></span></li>
+          <li>Глюкоза, HbA1c (углеводный обмен). <span class="tag g"></span></li>
+          <li>По показаниям: КФК, креатинин, электролиты, АЛТ/АСТ, витамины B12 и D, липидограмма. <span class="tag g"></span></li>
+          <li>Дополнительно: сон, физическая активность, питание, стресс, приём лекарств (статины, метформин).</li>
+        </ul>
+      </li>
+      <li><strong>Определить показания к углублённой оценке:</strong> Если после второго шага жалобы остаются необъяснёнными и выявляется сочетание системных признаков, пациента переводят в Сценарий Б.</li>
+      <li><strong>Если показаний нет — не назначать генетику и маркеры:</strong> Секвенирование мтДНК, WES, WGS, микробиомное секвенирование и GDF-15/FGF-21 «для профилактики» не показаны. Вместо этого проводят стандартную оценку метаболического здоровья. Пациенту нужно объяснить разницу между «генетикой» и «текущей функцией».</li>
+    </ol>
+  </div>
+
+  <div class="scen">
+    <h4>Сценарий Б. Клиническое подозрение на митохондриальное заболевание</h4>
+    <ol class="steps">
+      <li><strong>Клинический скрининг:</strong> Оценка неврологического статуса (птоз, офтальмоплегия, слабость, судороги, мигрени, атаксия), мышечной силы, слуха, зрения, ЭКГ/ЭхоКГ, эндокринных нарушений и ЖКТ-моторики. Сбор семейного анамнеза (родословная).</li>
+      <li><strong>Оценка вероятности:</strong> Высокая вероятность при сочетании нескольких системных нарушений. Изолированная усталость не является показанием к генетическому тестированию.</li>
+      <li><strong>Первичные лабораторные исследования:</strong> ОАК, КФК, АСТ, АЛТ, лактат и пируват (с соблюдением правил забора), аминокислоты плазмы, ацилкарнитины и органические кислоты мочи. <span class="tag g"></span></li>
+      <li><strong>Инструментальная оценка:</strong> ЭКГ, ЭхоКГ, МРТ головного мозга, МР-спектроскопия, ЭМГ, CPET.</li>
+      <li><strong>Генетическое исследование:</strong> При характерном фенотипе — таргетный анализ; при широком или неясном — панель генов митохондриальных заболеваний или WES/WGS с подтверждением включения мтДНК.</li>
+      <li><strong>Если генетическое исследование не выявило причину, но клиническое подозрение сохраняется:</strong> По показаниям рассматривают анализ мтДНК в другой ткани (например, моче или мышце), поиск крупных делеций (в том числе MLPA) и направление в специализированный центр. Биопсия мышцы — не автоматический следующий шаг, а инвазивное исследование для отдельных случаев по решению профильной команды.</li>
+      <li><strong>Направление к специалисту и наблюдение:</strong> Центры наследственных болезней обмена, генетики. При вторичной дисфункции — коррекция метаболических, воспалительных и нутритивных факторов.</li>
+    </ol>
+  </div>
+
+  <div class="callout doc"><strong class="lbl">О шкале MDC Score <span class="tag y"></span></strong>Помогает структурировать признаки (клинические, метаболические, инструментальные). Высчитываются баллы для определения вероятности митохондриального заболевания. Малоприменима как универсальный скрининг для здоровых взрослых.</div>
+</section>
+
+<section class="sec" id="s1-7">
+  <h3>1.7. Подходы к коррекции</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Направление</th><th>Содержание</th></tr></thead>
+    <tbody>
+      <tr><td>Питание</td><td>Достаточная энергетическая обеспеченность, коррекция дефицитов, адекватный белок, индивидуальный подбор углеводов и жиров.</td></tr>
+      <tr><td>Физическая активность</td><td>Постепенное наращивание аэробной нагрузки, силовые тренировки. При подтверждённом заболевании чрезмерные нагрузки противопоказаны.</td></tr>
+      <tr><td>Метаболические нарушения</td><td>Коррекция инсулинорезистентности, ожирения, дислипидемии и дефицитов микронутриентов.</td></tr>
+      <tr><td>Нутрицевтическая поддержка</td><td>CoQ10, рибофлавин (B2), тиамин (B1), L-карнитин: строго по конкретным показаниям, а не «всем при усталости».</td></tr>
+      <tr><td>Первичное заболевание</td><td>Специализированная терапия при отдельных генетических дефектах, наблюдение профильных специалистов.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout warn"><strong class="lbl">Предупреждение</strong>«Митохондриальный коктейль» из множества добавок не стоит назначать автоматически. Доказательная база большинства компонентов в превентивной практике ограничена.</div>
+</section>
+
+<section class="sec" id="s1-8">
+  <h3>1.8. Коммерческое сравнение: митохондриальная генетика</h3>
+
+  <div class="tcap">Таблица 1.8.1. Европа и США</div>
+  <div class="tw"><table class="xwide">
+    <thead><tr><th>Лаборатория</th><th>Тест</th><th>Ядерные гены</th><th>мтДНК</th><th>Заявленная гетероплазмия</th><th>Глубина покрытия</th><th>Ключевое ограничение</th></tr></thead>
+    <tbody>
+      <tr><td>CENTOGENE (Германия)<br><span class="tag g"></span></td><td>CentoXome (WES)</td><td>Да (~20 000)</td><td>Да (37 генов)</td><td>от 15%</td><td>Ядерные целевые регионы: ≥98% при ≥20×; отдельную глубину мтДНК необходимо уточнять</td><td>Порог 15% может пропускать низкоуровневую гетероплазмию</td></tr>
+      <tr><td>CENTOGENE (Германия)<br><span class="tag g"></span></td><td>CentoGenome (WGS)</td><td>Да (полный)</td><td>Да (полный)</td><td>от 15%</td><td>Ядерный: ~30×; мтДНК: уточнять</td><td>Средняя глубина ~30× относится к ядерному геному и не гарантирует покрытие мтДНК</td></tr>
+      <tr><td>Invitae (США)<br><span class="tag y"></span></td><td>Exome Duo / Trio</td><td>Да</td><td>Нет</td><td>—</td><td>Средняя &gt;35×; 99,5% целевых регионов &gt;20×</td><td>Не анализирует мтДНК</td></tr>
+      <tr><td>Invitae (США)<br><span class="tag y"></span></td><td>Neuromuscular Panel</td><td>Да (до 230)</td><td>Полный мтДНК не анализируется</td><td>—</td><td>—</td><td>Не заменяет секвенирование мтДНК</td></tr>
+      <tr><td>Atlas Biolabs (Германия)<br><span class="tag b"></span></td><td>WES 60×</td><td>Да</td><td>Не подтверждено</td><td>Не указана</td><td>Ядерный: 60×</td><td>Исследовательская платформа FASTQ, а не готовый диагноз (€334)</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout rule"><strong class="lbl">О доступности для пациентов из РФ и СНГ</strong>Не ставьте тег «Недоступно в СНГ» только на основании того, что лаборатория находится за рубежом. Возможность заказа зависит от страны проживания, посредника, правил приёма биоматериала, логистики и текущих ограничений лаборатории. Перед публикацией таблицы доступность каждого конкретного теста нужно подтвердить у лаборатории или официального партнёра.</div>
+
+  <div class="tcap">Таблица 1.8.2. Россия и СНГ</div>
+  <div class="tw"><table class="xwide">
+    <thead><tr><th>№</th><th>Лаборатория / тест</th><th>Что исследуется</th><th>мтДНК</th><th>Гетероплазмия</th><th>Срок</th><th>Цена (ориентир)</th><th>Ключевое ограничение</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Геномед: клиническое секвенирование генома<br><span class="tag g"></span></td><td>Полный экзом, все гены мтДНК, CNV</td><td>Да (все гены)</td><td>&gt;5% (заявлено)</td><td>60 раб. дн.</td><td>65 000 ₽</td><td>Широкий тест, нужна интерпретация генетика</td></tr>
+      <tr><td>2</td><td>Геномед: панель «Митохондриальный геном»<br><span class="tag g"></span></td><td>37 генов мтДНК, SNV, инсерции/делеции</td><td>Да</td><td>Порог не указан</td><td>60 раб. дн.</td><td>35 000 ₽</td><td>Только мтДНК, ядерные гены не включены</td></tr>
+      <tr><td>3</td><td>Геномед: скрининг 13 частых мутаций мтДНК<br><span class="tag y"></span></td><td>LHON, MELAS, MERRF, NARP, Leigh</td><td>Да (13 точек)</td><td>Не применимо</td><td>21 раб. дн.</td><td>10 000 ₽</td><td>Узкий таргет. Внимание: метод MLPA применяют для выявления крупных перестроек, а не точечных замен. Метод требует уточнения!</td></tr>
+      <tr><td>4</td><td>Геномед: 19 мутаций мтДНК + DNAJC30<br><span class="tag y"></span></td><td>LHON-спектр</td><td>Да (19 точек)</td><td>Не применимо</td><td>21 раб. дн.</td><td>15 000 ₽</td><td>Узкий таргет</td></tr>
+      <tr><td>5</td><td>ДНКОМ: генетическая диагностика митохондриальных болезней<br><span class="tag y"></span></td><td>MELAS, MERRF, CPEO, Kearns-Sayre, LHON</td><td>Точечные мутации/делеции</td><td>Не указан</td><td>9 раб. дн.</td><td>13 000 ₽</td><td>Точечный скрининг; отрицательный результат не исключает патологию</td></tr>
+      <tr><td>6</td><td>Genetico: NGS-панель «Болезни обмена веществ»<br><span class="tag y"></span></td><td>753 гена</td><td>Частично</td><td>Не указан</td><td>35–90 дн.</td><td>46 000–52 000 ₽</td><td>Метаболическая панель, не таргетный мтДНК-тест</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout doc"><strong class="lbl">Комментарий для врача</strong>При выраженном фенотипе первая линия — таргетные тесты (ДНКОМ, Геномед). Они быстры, но не исключают болезнь при отрицательном ответе. Вторым шагом идут панель «Митохондриальный геном» или клиническое секвенирование генома Геномеда.</div>
+</section>
+
+<section class="sec" id="s1-9">
+  <h3>1.9. Интересные факты и исследования</h3>
+  <ul class="facts">
+    <li><strong>Митохондрии и воспаление:</strong> При повреждении митохондрий выделяются молекулы DAMPs (включая внеклеточную мтДНК и АТФ), которые способны запускать иммунный ответ и системное воспаление.</li>
+    <li><strong>Поперечные исследования:</strong> В исследовании Oynotkinova et al. (2022) у 128 пациентов с метаболическим синдромом выявлялись корреляции между микробиотой и митохондриальными ферментами, однако причинно-следственная связь не доказана.</li>
+    <li><strong>Гетероплазмия меняется с возрастом.</strong> Уровень мутантной митохондриальной ДНК в крови с возрастом часто снижается (мутантные митохондрии «вымываются»), поэтому отрицательный анализ крови у взрослого человека особенно плохо исключает болезнь. Иногда мутация сохраняется только в мышцах или моче.</li>
+  </ul>
+</section>
+
+<!-- ===================== ЧАСТЬ 2 ===================== -->
+<h2 class="part-head" id="part2">ЧАСТЬ 2. МИКРОБИОМ</h2>
+
+<section class="sec" id="s2-1">
+  <h3>2.1. Термины</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Понятие</th><th>Что изучаем</th><th>Пример</th></tr></thead>
+    <tbody>
+      <tr><td>Микробиота</td><td>Состав микроорганизмов</td><td>Bifidobacterium</td></tr>
+      <tr><td>Микробиом</td><td>Микроорганизмы и их генетический функциональный потенциал</td><td>Гены синтеза бутирата</td></tr>
+      <tr><td>Метабиом</td><td>Биохимические продукты взаимодействия микробиоты и хозяина</td><td>Бутират, ацетат, пропионат</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="sec" id="s2-2">
+  <h3>2.2. На что влияет микробиота</h3>
+  <p>Микробиота участвует в пищеварении и метаболизме через короткоцепочечные жирные кислоты (КЦЖК), поддерживает кишечный барьер, формирует иммунную толерантность и участвует в осях «кишечник–печень» и «кишечник–мозг». Бутират служит основным энергосубстратом для колоноцитов и обладает противовоспалительным действием.</p>
+</section>
+
+<section class="sec" id="s2-3">
+  <h3>2.3. Когда нужна диагностика</h3>
+  <h4>Стандартные клинические исследования</h4>
+  <ul>
+    <li><strong>Острая диарея:</strong> ПЦР на патогены, культура по показаниям. <span class="tag g"></span></li>
+    <li><strong>Подозрение на C. difficile:</strong> Исследование кала по принятому лабораторному алгоритму (токсины A/B и/или тест на токсигенный штамм, например GDH/NAAT) с учётом симптомов и клинической картины. <span class="tag g"></span></li>
+    <li><strong>Хроническая диарея / ВЗК:</strong> Фекальный кальпротектин, эндоскопия. <span class="tag g"></span></li>
+    <li><strong>Внешнесекреторная недостаточность ПЖ:</strong> Фекальная эластаза. <span class="tag g"></span></li>
+  </ul>
+  <h4>Секвенирование микробиома <span class="tag b"></span><span class="tag o"></span></h4>
+  <p>Международные консенсусы (2024–2025 гг.) не рекомендуют рутинное секвенирование микробиома в клинической практике. Метод не валидирован для диагностики СРК, ожирения или неврологических расстройств. Запрос «проверить дисбиоз» не является показанием.</p>
+</section>
+
+<section class="sec" id="s2-4">
+  <h3>2.4. Методы исследования микробиома</h3>
+  <div class="tw"><table class="wide">
+    <thead><tr><th>Метод</th><th>Что показывает</th><th>Функциональная информация</th><th>Клиническая применимость</th></tr></thead>
+    <tbody>
+      <tr><td>Копрограмма<br><span class="tag g"></span></td><td>Физико-химические свойства кала</td><td>Нет</td><td>По показаниям: хронические нарушения стула, подозрение на нарушение переваривания или усвоения пищи</td></tr>
+      <tr><td>Культура (посев)<br><span class="tag g"></span></td><td>Культивируемые микроорганизмы</td><td>Ограниченная</td><td>Высокая при острых инфекциях</td></tr>
+      <tr><td>ПЦР<br><span class="tag g"></span></td><td>Конкретные целевые микроорганизмы</td><td>Нет</td><td>Высокая для инфекций</td></tr>
+      <tr><td>16S рРНК<br><span class="tag b"></span></td><td>Бактериальный состав (до рода)</td><td>Нет</td><td>Ограниченная (исследовательская)</td></tr>
+      <tr><td>Shotgun (метагеномика)<br><span class="tag b"></span></td><td>Состав, гены, вид/штамм</td><td>Потенциальная</td><td>Ограниченная</td></tr>
+      <tr><td>Метаболомика<br><span class="tag b"></span></td><td>Реальные метаболиты (КЦЖК, желчные кислоты)</td><td>Да (продукты обмена)</td><td>Преимущественно исследовательская</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="sec" id="s2-5">
+  <h3>2.5. Коммерческое сравнение: микробиом</h3>
+
+  <div class="tcap">Таблица 2.5.1. Европа</div>
+  <div class="tw"><table class="wide">
+    <thead><tr><th>Лаборатория</th><th>Метод</th><th>Что входит</th><th>Цена (ориентир)</th><th>Ключевое ограничение</th></tr></thead>
+    <tbody>
+      <tr><td>Atlas Biolabs<br><span class="tag b"></span></td><td>16S Amplicon V4</td><td>Сырые FASTQ</td><td>€83 без НДС (€98,77 с НДС)</td><td>Биоинформатика отдельно, нет отчёта</td></tr>
+      <tr><td>Atlas Biolabs (Германия)<br><span class="tag b"></span></td><td>Shotgun Metagenomics</td><td>Сырые FASTQ</td><td>€365 без НДС (€434,35 с НДС)</td><td>требуется отдельный биоинформатический анализ; клиническая значимость результатов ограничена</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="tcap">Таблица 2.5.2. Россия и СНГ</div>
+  <div class="tw"><table class="xwide">
+    <thead><tr><th>№</th><th>Лаборатория / продукт</th><th>Метод</th><th>Что входит</th><th>Срок</th><th>Цена (ориентир)</th><th>Ключевые ограничения</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Novabiom: MAXI<br><span class="tag o"></span></td><td>16S рРНК</td><td>Анализ групп бактерий, «биологический возраст», ИИ-рекомендации</td><td>3–5 нед.</td><td>53 990 ₽</td><td>Потребительский формат; клиническая валидация не подтверждена</td></tr>
+      <tr><td>2</td><td>Novabiom: BALANCE<br><span class="tag o"></span></td><td>16S рРНК</td><td>Тематические профили</td><td>3–5 нед.</td><td>35 000 ₽</td><td>Доказательства клинической ценности отсутствуют</td></tr>
+      <tr><td>3</td><td>ИНВИТРО: Колонофлор-16 (Премиум / метаболизм)<br><span class="tag o"></span></td><td>ПЦР</td><td>Оценка ограниченного набора микроорганизмов (16–33 показателя)</td><td>4 дн.</td><td>5 600 ₽</td><td>Коммерческая панель оценки микрофлоры; не является секвенированием микробиома и не должна использоваться как самостоятельный диагностический инструмент для выбора лечения.</td></tr>
+      <tr><td>4</td><td>ИНВИТРО: Оценка микрофлоры (№491 / ХМС)<br><span class="tag o"></span></td><td>Хромато-масс-спектрометрия (метод Осипова)</td><td>Анализ маркерных жирных кислот</td><td>4 дн.</td><td>5 600 ₽</td><td>Метаболитный метод; не рекомендован для рутинной практики</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout doc"><strong class="lbl">Комментарий для врача в РФ</strong>Продукты 16S (Novabiom) и ХМС относятся к потребительскому сегменту и не имеют валидации для постановки диагноза или выбора лечения. Они не заменяют кальпротектин, ПЦР и эластазу. Если пациент предоставил результат, объясните его информационный характер и не назначайте агрессивные диеты или БАДы.</div>
+</section>
+
+<section class="sec" id="s2-6">
+  <h3>2.6. Алгоритм врача при запросе «проверить микробиом»</h3>
+  <ol class="steps">
+    <li><strong>Выяснить цель:</strong> Есть ли симптомы ЖКТ или это общий интерес?</li>
+    <li><strong>При симптомах:</strong> По клиническим показаниям использовать стандартные исследования: фекальный кальпротектин, ПЦР на конкретные кишечные патогены и фекальную эластазу. <span class="tag g"></span> Дыхательный тест на СИБР — только при подходящей клинической картине и с учётом ограничений метода. <span class="tag y"></span></li>
+    <li><strong>При отсутствии симптомов:</strong> Разъяснить отсутствие доказанной пользы рутинного секвенирования.</li>
+    <li><strong>Если тест сделан самостоятельно:</strong> Не использовать его как единственное основание для лечения, назначения пробиотиков или строгих элиминационных диет.</li>
+  </ol>
+</section>
+
+<section class="sec" id="s2-7">
+  <h3>2.7. Интересные факты</h3>
+  <ul class="facts">
+    <li><strong>Микробиота и биологический возраст.</strong> В исследованиях разрабатываются модели предсказания возраста по составу кишечной микробиоты. Однако точность и переносимость таких моделей между популяциями ограничены, а их клиническая применимость пока не установлена. Ассоциации «молодого» микробиома с метаболическими показателями не позволяют использовать такой анализ для индивидуальной оценки биологического возраста.</li>
+    <li><strong>Пересадка микробиоты и ожирение.</strong> В известных экспериментах пересадка микробиоты от мышей с ожирением обычным мышам приводила к увеличению жировой массы даже при одинаковом питании. У людей такие эффекты тоже изучаются, но пока значительно слабее выражены.</li>
+    <li><strong>Микробиота и ответ на лекарства.</strong> Влияние микробиоты на ответ на лекарства (pharmacomicrobiomics) — одно из самых быстро развивающихся направлений. Особенно активно изучается связь состава кишечной микробиоты с эффективностью иммунотерапии рака. Однако на данный момент клинически валидированных и рутинно доступных тестов для предсказания ответа на лекарства по микробиому не существует.</li>
+  </ul>
+</section>
+
+<!-- ===================== ЧАСТЬ 3 ===================== -->
+<h2 class="part-head" id="part3">ЧАСТЬ 3. ИТОГОВЫЕ ПРАКТИЧЕСКИЕ ВЫВОДЫ</h2>
+
+<section class="sec" id="s3-1">
+  <h3>3.1. Общие принципы</h3>
+  <ol class="steps">
+    <li>Тест без клинической гипотезы не требуется.</li>
+    <li>Генетика ≠ текущая функция: отрицательный генетический тест не исключает вторичную дисфункцию.</li>
+    <li>Первым делом исключают частые причины жалоб (анемия, гипотиреоз, нарушенный сон, дефициты, приём статинов).</li>
+    <li>Потребительские панели микробиома и маркеры GDF-15/FGF-21 не заменяют клиническую диагностику. <span class="tag o"></span><span class="tag b"></span></li>
+  </ol>
+</section>
+
+<section class="sec" id="s3-2">
+  <h3>3.2. Что реально доступно в России</h3>
+  <div class="tw"><table class="wide">
+    <thead><tr><th>Задача</th><th>Что использовать</th><th>Оговорка</th></tr></thead>
+    <tbody>
+      <tr><td>Быстрая проверка частых мутаций<br><span class="tag y"></span></td><td>ДНКОМ (13 000 ₽), скрининг Геномеда</td><td>Отрицательный результат ничего не исключает; метод MLPA у Геномеда уточнить (не для точечных замен)</td></tr>
+      <tr><td>Полный анализ мтДНК<br><span class="tag g"></span></td><td>Геномед (панель «Митохондриальный геном» / клиническое секвенирование)</td><td>Нужна консультация генетика; уточнить чувствительность к гетероплазмии</td></tr>
+      <tr><td>Метаболический генетический скрининг<br><span class="tag y"></span></td><td>Genetico (панель «Болезни обмена веществ»)</td><td>Заточен на ядерные гены, не заменяет анализ мтДНК</td></tr>
+      <tr><td>Функциональная оценка<br><span class="tag g"></span><span class="tag y"></span></td><td>Лактат/пируват (строгая преаналитика!), аминокислоты, органокислоты мочи, CPET</td><td>Прямых рутинных тестов функции митохондрий в РФ практически нет</td></tr>
+      <tr><td>Обследование кишечника<br><span class="tag g"></span></td><td>Кальпротектин, ПЦР, токсин C. difficile, эластаза</td><td>Основа практики, секвенированием 16S не заменяются</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="sec" id="s3-3">
+  <h3>3.3. Чего избегать</h3>
+  <div class="callout warn">
+    <ul style="margin:0">
+      <li>Не заказывайте «митохондриальный профиль» или секвенирование мтДНК здоровым людям без гипотезы.</li>
+      <li>Не принимайте отрицательный результат таргетного теста на 13–19 точек за полное исключение болезни.</li>
+      <li>Не используйте GDF-15 и FGF-21 в качестве скрининга.</li>
+      <li>Не назначайте элиминационные диеты и пробиотики только по результатам 16S-тестов.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="sec" id="s3-4">
+  <h3>3.4. Чек-лист перед направлением пациента</h3>
+  <ol class="steps">
+    <li>Есть ли клиническая гипотеза и какой вопрос должен решить результат?</li>
+    <li>Исключены ли частые рутинные причины жалоб?</li>
+    <li>Получен ли ответ от лаборатории о глубине покрытия и детекции гетероплазмии?</li>
+    <li>Кто будет интерпретировать результат (генетик, профильный специалист)?</li>
+    <li>Что вы будете делать при положительном, отрицательном или неопределённом (VUS) результате?</li>
+  </ol>
+  <div class="callout key"><strong class="lbl">Итог</strong>Если ответа на 5-й вопрос нет — исследование назначать не нужно.</div>
+</section>
+
+<footer>Митохондриальное здоровье и микробиом</footer>
+</main>
+
+<script>
+(function(){
+  var burger=document.getElementById('burger');
+  var sidebar=document.getElementById('sidebar');
+  var overlay=document.getElementById('overlay');
+  var links=sidebar.querySelectorAll('a');
+  var wide=function(){return window.innerWidth>=1100;};
+
+  function setOpen(open){
+    sidebar.classList.toggle('open',open);
+    burger.classList.toggle('open',open);
+    overlay.classList.toggle('show',open);
+    document.body.classList.toggle('toc-open',open);
+    burger.setAttribute('aria-expanded',open?'true':'false');
+  }
+  burger.addEventListener('click',function(){setOpen(!sidebar.classList.contains('open'));});
+  overlay.addEventListener('click',function(){setOpen(false);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')setOpen(false);});
+
+  links.forEach(function(a){
+    a.addEventListener('click',function(e){
+      var id=a.getAttribute('href').slice(1);
+      var t=document.getElementById(id);
+      if(t){
+        e.preventDefault();
+        t.scrollIntoView({behavior:'smooth',block:'start'});
+        if(history.replaceState)history.replaceState(null,'','#'+id);
+      }
+      if(!wide())setOpen(false);
+    });
+  });
+
+  // открыть оглавление по умолчанию на больших экранах
+  if(wide())setOpen(true);
+
+  // подсветка активного раздела
+  var map={};
+  links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a;});
+  var targets=[];
+  Object.keys(map).forEach(function(id){var el=document.getElementById(id);if(el&&id!=='top')targets.push(el);});
+  function onScroll(){
+    var pos=window.scrollY+120,cur=null;
+    targets.forEach(function(el){if(el.offsetTop<=pos)cur=el.id;});
+    links.forEach(function(a){a.classList.remove('active');});
+    if(cur&&map[cur]){
+      map[cur].classList.add('active');
+    }
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  onScroll();
+})();
+</script>
+</body>
+</html>
